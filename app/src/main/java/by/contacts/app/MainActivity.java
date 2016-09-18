@@ -31,7 +31,6 @@ public class MainActivity extends
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         mRecycleView = (RecyclerView) findViewById(R.id.my_recycler_view);
 
         // use this setting to improve performance if you know that changes
@@ -40,11 +39,8 @@ public class MainActivity extends
         // use a linear layout manager
         mLayoutManager = new LinearLayoutManager(this);
         mRecycleView.setLayoutManager(mLayoutManager);
-
-
         getSupportLoaderManager().restartLoader(CONTACT_LOADER_ID,null,this);
     }
-
 
     @Override
     public Loader<List<BaseEntity>> onCreateLoader(int id, Bundle args) {

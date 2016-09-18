@@ -1,11 +1,16 @@
 package adapters;
 
+import android.app.Activity;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.cocosw.bottomsheet.BottomSheet;
 
 import java.util.List;
 
@@ -47,6 +52,19 @@ public abstract class BaseContactAdapter<T extends BaseEntity> extends RecyclerV
         return holder;
     }
 
+    /*
+        new BottomSheet.Builder(this, R.style.BottomSheet_Dialog)
+                .title("")
+                .grid() // <-- important part
+                .sheet(R.menu.bottom_sheet)
+                .listener(new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // TODO
+                    }
+                }).show();
+
+     */
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         final T contact = data.get(position);
@@ -55,6 +73,37 @@ public abstract class BaseContactAdapter<T extends BaseEntity> extends RecyclerV
             case Element:
                 ItemViewHolder itemViewHolder = (ItemViewHolder) holder;
                 itemViewHolder.mContactName.setText(contact.getName());
+                itemViewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                       final Activity activity = (Activity) v.getContext();
+                        new BottomSheet.Builder(activity).title(contact.getName()).sheet(R.menu.bottom_sheet)
+                                .listener(new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                switch (which) {
+                                    case R.id.share:
+                                        Intent share = new Intent(android.content.Intent.ACTION_SEND);
+                                        share.setType("text/plain");
+                                        share.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+
+                                        // Add data to the intent, the receiving app will decide
+                                        // what to do with it.
+                                        share.putExtra(Intent.EXTRA_SUBJECT, "Contact share");
+                                        share.putExtra(Intent.EXTRA_TEXT, contact.getName());
+                                        activity.startActivity(Intent.createChooser(share, "Share contact!"));
+
+                                        break;
+                                    case R.id.delete:
+                                        break;
+                                    case R.id.close:
+                                        break;
+                                }
+                            }
+                        }).show();
+                        return true;
+                    }
+                });
                 break;
             case Header:
                 HeaderViewHolder groupViewHolder = (HeaderViewHolder) holder;
