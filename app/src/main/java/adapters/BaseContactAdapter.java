@@ -17,6 +17,7 @@ import java.util.List;
 import by.contacts.app.R;
 import data.BaseContact;
 import data.BaseEntity;
+import data.BaseGroup;
 import data.ItemType;
 
 /**
@@ -24,7 +25,7 @@ import data.ItemType;
  */
 public abstract class BaseContactAdapter<T extends BaseEntity> extends RecyclerView.Adapter<BaseContactAdapter.ViewHolder>  {
 
-    final List<T> data;
+    protected final List<T> data;
 
     public BaseContactAdapter(List<T> data) {
         this.data = data;
@@ -52,21 +53,8 @@ public abstract class BaseContactAdapter<T extends BaseEntity> extends RecyclerV
         return holder;
     }
 
-    /*
-        new BottomSheet.Builder(this, R.style.BottomSheet_Dialog)
-                .title("")
-                .grid() // <-- important part
-                .sheet(R.menu.bottom_sheet)
-                .listener(new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // TODO
-                    }
-                }).show();
-
-     */
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, final int position) {
         final T contact = data.get(position);
         ItemType itemType = holder.getItemType();
         switch (itemType){
@@ -95,6 +83,24 @@ public abstract class BaseContactAdapter<T extends BaseEntity> extends RecyclerV
 
                                         break;
                                     case R.id.delete:
+                                        T prev = data.get(position - 1);
+                                        T next = data.get(position + 1);
+
+                                        int notifyPos = position;
+                                        if(prev instanceof BaseGroup && next!= null &&
+                                                next.getName().charAt(0) !=
+                                                        contact.getName().charAt(0)){ // not same group
+                                            notifyPos = position - 1;
+                                            data.remove(position - 1);
+                                        }else if(prev instanceof BaseGroup && next == null) {
+                                            data.remove(position - 1);
+                                            notifyPos = position - 1;
+                                        }
+                                        // TODO notify index alphabet library
+                                        data.remove(contact);
+
+                                        notifyItemRemoved(notifyPos);
+                                        notifyItemRangeChanged(notifyPos, getItemCount());
                                         break;
                                     case R.id.close:
                                         break;

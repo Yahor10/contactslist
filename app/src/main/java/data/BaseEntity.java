@@ -20,4 +20,12 @@ public abstract class BaseEntity {
     public String getName() {
         return name;
     }
+
+    @Override
+    public String toString() {
+        return "BaseEntity{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                '}';
+    }
 }
