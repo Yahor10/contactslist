@@ -3,10 +3,13 @@ package loaders;
 import android.content.Context;
 import android.support.v4.content.AsyncTaskLoader;
 
+import com.viethoa.models.AlphabetItem;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import by.contacts.app.ContactApplication;
 import by.contacts.app.R;
 import data.BaseContact;
 import data.BaseEntity;
@@ -32,11 +35,11 @@ public class ContactsLoader<T extends BaseEntity> extends AsyncTaskLoader<List<B
 
     @Override
     public List<BaseEntity> loadInBackground() {
-        String[] list = getContext().getResources().getStringArray(R.array.fruits_array);
+        ContactApplication context = (ContactApplication) getContext();
+        String[] list = context.getResources().getStringArray(R.array.fruits_array);
 
-        LinkedHashMap mapIndex = new LinkedHashMap<String, Integer>();
-        List<BaseEntity>result = new ArrayList<>(list.length + 32);
-
+        final List<BaseEntity>result = new ArrayList<>(list.length + 32);
+        final LinkedHashMap mapIndex = new LinkedHashMap(32);
         for (int i = 0; i < list.length; i++) {
             String fruit = list[i];
             String index = fruit.substring(0, 1);
@@ -44,6 +47,7 @@ public class ContactsLoader<T extends BaseEntity> extends AsyncTaskLoader<List<B
             if (mapIndex.get(index) == null){
                 result.add(new BaseGroup(i,index));
                 mapIndex.put(index, i);
+                context.getAlphabetItems().add(new AlphabetItem(i, index, false));
             }
             result.add(new BaseContact(0,fruit,""));
         }
@@ -56,6 +60,4 @@ public class ContactsLoader<T extends BaseEntity> extends AsyncTaskLoader<List<B
         super.onStartLoading();
         forceLoad();
     }
-
-
 }

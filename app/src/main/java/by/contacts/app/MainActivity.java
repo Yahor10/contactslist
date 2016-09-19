@@ -19,10 +19,7 @@ import android.widget.Toast;
 import com.viethoa.RecyclerViewFastScroller;
 import com.viethoa.models.AlphabetItem;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import adapters.ContactsAdapter;
 import data.BaseEntity;
@@ -30,9 +27,8 @@ import loaders.ContactsLoader;
 
 public class MainActivity extends
         BaseActivity
-        implements LoaderManager.LoaderCallbacks<List<BaseEntity>> {
-
-    Map<String, Integer> mapIndex;
+        implements
+        LoaderManager.LoaderCallbacks<List<BaseEntity>> {
 
     RecyclerView mRecycleView;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -41,16 +37,35 @@ public class MainActivity extends
 
     private static final short CONTACT_LOADER_ID = 0x01;
 
-
     private static final short MY_PERMISSIONS_REQUEST_READ_CONTACTS = 0x10;
+
     private RecyclerViewFastScroller fastScroller;
+
+    private final RecyclerView.AdapterDataObserver adapterDataObserver =   new RecyclerView.AdapterDataObserver() {
+        @Override
+        public void onItemRangeRemoved(int positionStart, int itemCount) {
+            super.onItemRangeRemoved(positionStart, itemCount);
+
+            ContactApplication app = (ContactApplication) getApplication();
+            List<AlphabetItem> alphabetItems = app.getAlphabetItems();
+
+            for(int i = 0; i < app.getAlphabetItems().size();i++) {
+                if(positionStart == alphabetItems.get(i).position){
+                    alphabetItems.remove(i);
+                    break;
+                }
+            }
+
+            fastScroller.setUpAlphabet(alphabetItems);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //requestContacts();
+        requestContacts();
         mRecycleView = (RecyclerView) findViewById(R.id.my_recycler_view);
 
         // use this setting to improve performance if you know that changes
@@ -63,24 +78,6 @@ public class MainActivity extends
 
         fastScroller = (RecyclerViewFastScroller) findViewById(R.id.fast_scroller);
         fastScroller.setRecyclerView(mRecycleView);
-
-        getIndexList(getResources().getStringArray(R.array.fruits_array));
-    }
-
-    private void getIndexList(String[] fruits) {
-        ArrayList<AlphabetItem> mAlphabetItems = new ArrayList<>();
-
-        mapIndex = new LinkedHashMap<String, Integer>();
-        for (int i = 0; i < fruits.length; i++) {
-            String fruit = fruits[i];
-            String index = fruit.substring(0, 1);
-
-            if (mapIndex.get(index) == null) {
-                mapIndex.put(index, i);
-                mAlphabetItems.add(new AlphabetItem(i, index, false));
-            }
-        }
-        fastScroller.setUpAlphabet(mAlphabetItems);
     }
 
     @Override
@@ -89,9 +86,26 @@ public class MainActivity extends
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        try {
+            if(mAdapter != null){
+                mAdapter.unregisterAdapterDataObserver(adapterDataObserver);
+                getSupportLoaderManager().destroyLoader(CONTACT_LOADER_ID);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public void onLoadFinished(Loader<List<data.BaseEntity>> loader, List<data.BaseEntity> data) {
         mAdapter = new ContactsAdapter(data);
         mRecycleView.setAdapter(mAdapter);
+        mAdapter.registerAdapterDataObserver(adapterDataObserver);
+
+        ContactApplication app = (ContactApplication) getApplication();
+        fastScroller.setUpAlphabet(app.getAlphabetItems());
     }
 
     @Override
@@ -125,6 +139,7 @@ public class MainActivity extends
                 builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         // User cancelled the dialog
+                        finish();
                     }
                 });
 

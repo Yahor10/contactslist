@@ -96,7 +96,6 @@ public abstract class BaseContactAdapter<T extends BaseEntity> extends RecyclerV
                                             data.remove(position - 1);
                                             notifyPos = position - 1;
                                         }
-                                        // TODO notify index alphabet library
                                         data.remove(contact);
 
                                         notifyItemRemoved(notifyPos);

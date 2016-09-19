@@ -53,4 +53,7 @@
         <item>Woodapple</item>
     </string-array>
 
+    <string name="title_activity_fullscreen">FullscreenActivity</string>
+    <string name="fruit_content">Fruit List</string>
+
 </resources>
